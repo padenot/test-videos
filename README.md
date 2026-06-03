@@ -1,9 +1,8 @@
 # Test Videos
 
-This repository vendors generators and scripts, not generated media.
-
-Generated `*.mp4`, `*.webm`, and `*.y4m` files are disposable artifacts. They
-are ignored by Git and can be recreated from the scripts in this repository.
+This repo contains code and script to generate various test videos, a lot of
+codec/containers/level/color space/resolution/bit depths/you name it
+combinations.
 
 ## Vector Families
 
@@ -51,3 +50,10 @@ Run the representative validation set in parallel:
 ```sh
 JOBS=$(nproc) ./validate-generated-vectors.sh
 ```
+
+# License
+
+Code: MPL2
+
+https://paul.cx/public/test-videos/ contains all generated videos, use as you
+see fit, CC0, don't hesitate to use in test suites, test cases, etc.

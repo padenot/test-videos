@@ -621,6 +621,7 @@ const state = {
     key: "file",
     direction: "asc",
   },
+  urlSyncReady: false,
 };
 
 const els = {
@@ -667,6 +668,20 @@ function writeNumber(key, value) {
   } catch (_) {}
 }
 
+function readBool(key) {
+  try {
+    return localStorage.getItem(key) === "true";
+  } catch (_) {
+    return false;
+  }
+}
+
+function writeBool(key, value) {
+  try {
+    localStorage.setItem(key, String(Boolean(value)));
+  } catch (_) {}
+}
+
 function clamp(value, min, max) {
   return Math.min(Math.max(value, min), max);
 }
@@ -691,6 +706,11 @@ function initPanelSizes() {
   const previewHeight = readNumber("testVideosPreviewHeight");
   if (sidebarWidth) setSidebarWidth(sidebarWidth);
   if (previewHeight) setPreviewHeight(previewHeight);
+}
+
+function initPlaybackPrefs() {
+  state.playback.loop = readBool("testVideosLoop");
+  state.playback.autoplay = readBool("testVideosAutoplay");
 }
 
 function bindPanelResizers() {
@@ -944,6 +964,52 @@ function compareVideos(a, b) {
   return direction === "desc" ? -result : result;
 }
 
+function syncFilterControls() {
+  els.search.value = state.filters.query;
+  if (state.filters.codec && ![...els.codec.options].some((option) => option.value === state.filters.codec)) {
+    state.filters.codec = "";
+  }
+  if (state.filters.resolution && ![...els.resolution.options].some((option) => option.value === state.filters.resolution)) {
+    state.filters.resolution = "";
+  }
+  if (state.filters.container && ![...els.container.options].some((option) => option.value === state.filters.container)) {
+    state.filters.container = "";
+  }
+  els.codec.value = state.filters.codec;
+  els.resolution.value = state.filters.resolution;
+  els.container.value = state.filters.container;
+}
+
+function restoreUrlState() {
+  const params = new URLSearchParams(window.location.search);
+  state.filters.query = params.get("q") || "";
+  state.filters.codec = params.get("codec") || "";
+  state.filters.resolution = params.get("size") || "";
+  state.filters.container = params.get("container") || "";
+  state.filters.hdrOnly = params.get("hdr") === "1";
+  state.filters.tenBitOnly = params.get("tenbit") === "1";
+
+  const file = params.get("video");
+  state.selected = file ? state.videos.find((video) => video.file === file) || null : null;
+  syncFilterControls();
+}
+
+function updateUrl() {
+  if (!state.urlSyncReady) return;
+  const params = new URLSearchParams();
+  if (state.filters.query) params.set("q", state.filters.query);
+  if (state.filters.codec) params.set("codec", state.filters.codec);
+  if (state.filters.resolution) params.set("size", state.filters.resolution);
+  if (state.filters.container) params.set("container", state.filters.container);
+  if (state.filters.hdrOnly) params.set("hdr", "1");
+  if (state.filters.tenBitOnly) params.set("tenbit", "1");
+  if (state.selected) params.set("video", state.selected.file);
+
+  const query = params.toString();
+  const nextUrl = window.location.pathname + (query ? "?" + query : "") + window.location.hash;
+  window.history.replaceState(null, "", nextUrl);
+}
+
 function applyFilters() {
   const query = state.filters.query;
   state.filtered = state.videos
@@ -965,6 +1031,7 @@ function applyFilters() {
   }
 
   render();
+  updateUrl();
 }
 
 function tag(text, className = "") {
@@ -1036,6 +1103,7 @@ function renderRows() {
     row.addEventListener("click", () => {
       state.selected = video;
       render();
+      updateUrl();
     });
     fragment.append(row);
   });
@@ -1093,10 +1161,12 @@ function bindControls() {
   });
   els.loopToggle.addEventListener("click", () => {
     state.playback.loop = !state.playback.loop;
+    writeBool("testVideosLoop", state.playback.loop);
     render();
   });
   els.autoplayToggle.addEventListener("click", () => {
     state.playback.autoplay = !state.playback.autoplay;
+    writeBool("testVideosAutoplay", state.playback.autoplay);
     if (state.playback.autoplay && state.selected) {
       els.player.play().catch(() => {});
     }
@@ -1104,10 +1174,8 @@ function bindControls() {
   });
   els.reset.addEventListener("click", () => {
     state.filters = { query: "", codec: "", resolution: "", container: "", hdrOnly: false, tenBitOnly: false };
-    els.search.value = "";
-    els.codec.value = "";
-    els.resolution.value = "";
-    els.container.value = "";
+    state.selected = null;
+    syncFilterControls();
     applyFilters();
   });
   els.headers.forEach((header) => {
@@ -1120,10 +1188,15 @@ function bindControls() {
       applyFilters();
     });
   });
+  window.addEventListener("popstate", () => {
+    restoreUrlState();
+    applyFilters();
+  });
 }
 
 async function init() {
   initPanelSizes();
+  initPlaybackPrefs();
   bindPanelResizers();
   bindControls();
   try {
@@ -1132,6 +1205,8 @@ async function init() {
     fillSelect(els.codec, uniqueSorted(state.videos.map((video) => video.codec)), "codecs");
     fillSelect(els.resolution, uniqueSorted(state.videos.map((video) => video.resolution)), "sizes");
     fillSelect(els.container, uniqueSorted(state.videos.map((video) => video.container)), "containers");
+    restoreUrlState();
+    state.urlSyncReady = true;
     els.status.textContent = "Loaded " + state.videos.length + " videos from " + source + ".";
     els.status.className = "status ok";
     applyFilters();
