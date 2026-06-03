@@ -5,16 +5,17 @@
 <title>Media Test Videos</title>
 <style>
 :root {
-  --bg: #f6f7f9;
-  --panel: #ffffff;
-  --ink: #1d232b;
-  --muted: #5f6b7a;
-  --line: #d9dee6;
-  --accent: #0b6bcb;
-  --accent-weak: #e8f2ff;
-  --good: #147d64;
-  --warn: #9d6b00;
-  --shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
+  --bg: #737373;
+  --panel: #d7d7d7;
+  --panel-strong: #c8c8c8;
+  --field: #eeeeee;
+  --ink: #171717;
+  --muted: #4c4c4c;
+  --line: #a8a8a8;
+  --accent: #1f5f99;
+  --accent-weak: #c7d7e6;
+  --good: #17624f;
+  --warn: #7a5300;
 }
 
 * {
@@ -25,7 +26,7 @@ body {
   margin: 0;
   background: var(--bg);
   color: var(--ink);
-  font: 14px/1.45 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font: 13px/1.35 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
 button,
@@ -35,98 +36,102 @@ select {
 }
 
 .shell {
-  min-height: 100vh;
+  height: 100vh;
   display: grid;
-  grid-template-columns: minmax(280px, 380px) minmax(0, 1fr);
+  grid-template-columns: minmax(260px, 330px) minmax(0, 1fr);
 }
 
 .sidebar {
-  position: sticky;
-  top: 0;
-  height: 100vh;
-  padding: 20px;
+  min-width: 0;
+  padding: 8px 10px;
   border-right: 1px solid var(--line);
   background: var(--panel);
+  display: grid;
+  grid-template-rows: auto auto auto auto minmax(0, 1fr);
+  gap: 8px;
+  align-content: start;
   overflow: auto;
 }
 
 .main {
   min-width: 0;
-  height: 100vh;
-  padding: 22px;
+  min-height: 0;
+  padding: 8px;
   display: grid;
   grid-template-rows: auto minmax(0, 1fr);
+  gap: 8px;
   overflow: hidden;
 }
 
 .title {
-  margin: 0 0 4px;
-  font-size: 22px;
-  line-height: 1.15;
+  margin: 0;
+  font-size: 16px;
+  line-height: 1.1;
   letter-spacing: 0;
+  white-space: nowrap;
 }
 
 .subtitle {
-  margin: 0 0 18px;
+  display: none;
+  margin: 0;
   color: var(--muted);
 }
 
 .search {
   width: 100%;
-  height: 42px;
-  padding: 0 12px;
+  height: 30px;
+  padding: 0 8px;
   border: 1px solid var(--line);
-  border-radius: 6px;
-  background: #fff;
+  border-radius: 0;
+  background: var(--field);
   color: var(--ink);
   outline: none;
 }
 
 .search:focus {
   border-color: var(--accent);
-  box-shadow: 0 0 0 3px var(--accent-weak);
 }
 
 .controls {
   display: grid;
-  gap: 12px;
-  margin-top: 14px;
+  gap: 7px;
+  margin: 0;
 }
 
 .control {
   display: grid;
-  gap: 6px;
+  gap: 3px;
 }
 
 .control label {
   color: var(--muted);
-  font-size: 12px;
+  font-size: 10px;
   font-weight: 650;
   text-transform: uppercase;
 }
 
 .select {
   width: 100%;
-  height: 36px;
-  padding: 0 10px;
+  height: 28px;
+  padding: 0 6px;
   border: 1px solid var(--line);
-  border-radius: 6px;
-  background: #fff;
+  border-radius: 0;
+  background: var(--field);
   color: var(--ink);
 }
 
 .chips {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 4px;
 }
 
 .chip {
   border: 1px solid var(--line);
-  border-radius: 999px;
-  background: #fff;
+  border-radius: 0;
+  background: var(--field);
   color: var(--ink);
-  padding: 6px 10px;
+  padding: 4px 8px;
   cursor: pointer;
 }
 
@@ -138,55 +143,61 @@ select {
 
 .summary {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px;
-  margin-top: 18px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 4px;
+  min-width: 0;
 }
 
 .metric {
-  padding: 10px;
+  padding: 3px 6px;
   border: 1px solid var(--line);
-  border-radius: 8px;
-  background: #fbfcfe;
+  border-radius: 0;
+  background: var(--panel-strong);
 }
 
 .metric strong {
   display: block;
-  font-size: 20px;
+  font-size: 15px;
+  line-height: 1.1;
 }
 
 .metric span {
   color: var(--muted);
-  font-size: 12px;
+  font-size: 10px;
 }
 
 .status {
-  margin-top: 16px;
-  padding: 10px;
-  border-radius: 8px;
-  background: #f4f6f8;
+  display: none;
+  padding: 4px 6px;
+  border: 1px solid var(--line);
+  border-radius: 0;
+  background: var(--panel-strong);
   color: var(--muted);
-  font-size: 12px;
+  font-size: 11px;
   overflow-wrap: anywhere;
+  max-width: 420px;
 }
 
 .status.ok {
+  display: none;
   color: var(--good);
 }
 
 .status.warn {
+  display: block;
   color: var(--warn);
 }
 
 .preview {
   position: sticky;
   top: 0;
+  min-width: 0;
+  min-height: 0;
   z-index: 2;
   display: grid;
-  grid-template-columns: minmax(320px, 48vw) minmax(260px, 1fr);
-  gap: 18px;
+  grid-template-columns: minmax(560px, 64vw) minmax(260px, 1fr);
+  gap: 8px;
   align-items: stretch;
-  margin-bottom: 18px;
   background: var(--bg);
 }
 
@@ -194,45 +205,46 @@ select {
 .details,
 .table-wrap {
   border: 1px solid var(--line);
-  border-radius: 8px;
   background: var(--panel);
-  box-shadow: var(--shadow);
 }
 
 .player {
   overflow: hidden;
+  background: #686868;
 }
 
 video {
   display: block;
   width: 100%;
   aspect-ratio: 16 / 9;
-  background: #05070a;
+  background: #707070;
 }
 
 .details {
-  padding: 16px;
+  padding: 8px;
   min-width: 0;
+  max-height: calc(64vw * 9 / 16);
+  overflow: auto;
 }
 
 .details h2 {
-  margin: 0 0 12px;
-  font-size: 18px;
+  margin: 0 0 6px;
+  font-size: 13px;
   overflow-wrap: anywhere;
 }
 
 .tags {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 4px;
 }
 
 .tag {
-  padding: 4px 8px;
-  border-radius: 999px;
-  background: #edf0f4;
-  color: #374151;
-  font-size: 12px;
+  padding: 2px 5px;
+  border-radius: 0;
+  background: var(--panel-strong);
+  color: #333333;
+  font-size: 11px;
 }
 
 .tag.hdr {
@@ -243,19 +255,19 @@ video {
 .actions {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
-  margin-top: 16px;
+  gap: 6px;
+  margin-top: 8px;
 }
 
 .action {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 34px;
-  padding: 0 12px;
+  min-height: 26px;
+  padding: 0 8px;
   border: 1px solid var(--line);
-  border-radius: 6px;
-  background: #fff;
+  border-radius: 0;
+  background: var(--field);
   color: var(--ink);
   text-decoration: none;
 }
@@ -283,8 +295,9 @@ video {
   justify-content: space-between;
   align-items: center;
   gap: 12px;
-  padding: 12px 14px;
+  padding: 6px 8px;
   border-bottom: 1px solid var(--line);
+  background: var(--panel-strong);
 }
 
 .toolbar strong {
@@ -299,12 +312,12 @@ video {
 table {
   width: 100%;
   border-collapse: collapse;
-  min-width: 1180px;
+  min-width: 1120px;
 }
 
 th,
 td {
-  padding: 9px 10px;
+  padding: 5px 7px;
   border-bottom: 1px solid var(--line);
   text-align: left;
   vertical-align: middle;
@@ -314,9 +327,9 @@ th {
   position: sticky;
   top: 0;
   z-index: 1;
-  background: #fbfcfe;
+  background: var(--panel-strong);
   color: var(--muted);
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 700;
   text-transform: uppercase;
 }
@@ -362,7 +375,7 @@ tbody tr.selected {
 }
 
 .name {
-  max-width: 48vw;
+  max-width: 36vw;
   overflow-wrap: anywhere;
   font-weight: 600;
 }
@@ -378,11 +391,11 @@ tbody tr.selected {
 }
 
 .flag {
-  padding: 2px 6px;
-  border-radius: 999px;
-  background: #eef2f7;
+  padding: 1px 4px;
+  border-radius: 0;
+  background: var(--panel-strong);
   color: #4b5563;
-  font-size: 11px;
+  font-size: 10px;
   white-space: nowrap;
 }
 
@@ -395,17 +408,16 @@ tbody tr.selected {
 @media (max-width: 900px) {
   .shell {
     grid-template-columns: 1fr;
+    height: auto;
   }
 
   .sidebar {
-    position: static;
-    height: auto;
     border-right: 0;
     border-bottom: 1px solid var(--line);
   }
 
   .main {
-    height: auto;
+    grid-template-columns: 1fr;
     overflow: visible;
   }
 
@@ -454,6 +466,13 @@ tbody tr.selected {
           <button id="hdrOnly" class="chip" type="button" aria-pressed="false">HDR</button>
           <button id="tenBitOnly" class="chip" type="button" aria-pressed="false">10+ bit</button>
           <button id="reset" class="chip" type="button" aria-pressed="false">Reset</button>
+        </div>
+      </div>
+      <div class="control">
+        <label>Playback</label>
+        <div class="chips">
+          <button id="loopToggle" class="chip" type="button" aria-pressed="false">Loop</button>
+          <button id="autoplayToggle" class="chip" type="button" aria-pressed="false">Autoplay</button>
         </div>
       </div>
     </div>
@@ -530,6 +549,10 @@ const state = {
     hdrOnly: false,
     tenBitOnly: false,
   },
+  playback: {
+    loop: false,
+    autoplay: false,
+  },
   sort: {
     key: "file",
     direction: "asc",
@@ -543,6 +566,8 @@ const els = {
   container: document.getElementById("container"),
   hdrOnly: document.getElementById("hdrOnly"),
   tenBitOnly: document.getElementById("tenBitOnly"),
+  loopToggle: document.getElementById("loopToggle"),
+  autoplayToggle: document.getElementById("autoplayToggle"),
   reset: document.getElementById("reset"),
   shownCount: document.getElementById("shownCount"),
   totalCount: document.getElementById("totalCount"),
@@ -798,7 +823,14 @@ function renderSelected() {
     return;
   }
 
-  els.player.src = video.href;
+  els.player.loop = state.playback.loop;
+  els.player.autoplay = state.playback.autoplay;
+  if (els.player.getAttribute("src") !== video.href) {
+    els.player.src = video.href;
+    if (state.playback.autoplay) {
+      els.player.play().catch(() => {});
+    }
+  }
   els.selectedName.textContent = video.file;
   els.openLink.href = video.href;
   els.downloadLink.href = video.href;
@@ -859,6 +891,10 @@ function renderMetrics() {
 function render() {
   els.hdrOnly.setAttribute("aria-pressed", String(state.filters.hdrOnly));
   els.tenBitOnly.setAttribute("aria-pressed", String(state.filters.tenBitOnly));
+  els.loopToggle.setAttribute("aria-pressed", String(state.playback.loop));
+  els.autoplayToggle.setAttribute("aria-pressed", String(state.playback.autoplay));
+  els.player.loop = state.playback.loop;
+  els.player.autoplay = state.playback.autoplay;
   els.headers.forEach((header) => {
     const active = header.dataset.sort === state.sort.key;
     header.setAttribute("aria-sort", active ? (state.sort.direction === "asc" ? "ascending" : "descending") : "none");
@@ -892,6 +928,17 @@ function bindControls() {
   els.tenBitOnly.addEventListener("click", () => {
     state.filters.tenBitOnly = !state.filters.tenBitOnly;
     applyFilters();
+  });
+  els.loopToggle.addEventListener("click", () => {
+    state.playback.loop = !state.playback.loop;
+    render();
+  });
+  els.autoplayToggle.addEventListener("click", () => {
+    state.playback.autoplay = !state.playback.autoplay;
+    if (state.playback.autoplay && state.selected) {
+      els.player.play().catch(() => {});
+    }
+    render();
   });
   els.reset.addEventListener("click", () => {
     state.filters = { query: "", codec: "", resolution: "", container: "", hdrOnly: false, tenBitOnly: false };
