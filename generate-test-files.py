@@ -2,61 +2,123 @@
 
 import os
 
-codec = [
-  ("av1", "webm"),
-  ("av1", "mp4"),
-  ("h264", "mp4"),
-  ("h265", "mp4"),
-  ("vp8", "webm"),
-  ("vp9", "webm"),
-  ("vp9", "mp4")
+DURATION = 3
+RATE = 30
+
+RESOLUTIONS = [
+    "640x480",
+    "1280x720",
+    "1920x1080",
+    "3840x2160",
+    "7680x4320",
 ]
 
-codectolib = {
-    "vp8": "libvpx",
-    "vp9": "libvpx-vp9",
-    "av1": "libaom-av1",
-    "h264": "libx264",
-    "h265": "libx265"
-}
+CODECS = [
+    ("av1", "libaom-av1", ["webm", "mp4"]),
+    ("h264", "libx264", ["mp4"]),
+    ("h265", "libx265", ["mp4"]),
+    ("vp8", "libvpx", ["webm"]),
+    ("vp9", "libvpx-vp9", ["webm", "mp4"]),
+]
 
-# 8 bits is implied in ffmpeg pixel format
-bit_depth = [ "", 10, 12 ]
-subsampling  = [ 420, 422, 444 ]
+RGB_PIXEL_FORMATS = ["gbrp", "gbrp10le", "gbrp12le", "gbrp14le", "gbrp16le"]
+YUV_PIXEL_FORMATS = [
+    "yuv420p",
+    "yuv422p",
+    "yuv444p",
+    "yuv420p10",
+    "yuv422p10",
+    "yuv444p10",
+    "yuv420p12",
+    "yuv422p12",
+    "yuv444p12",
+]
 
-pixel_format = ["gbrp", "gbrp10le", "gbrp12le", "gbrp14le", "gbrp16le"]
-for bd in bit_depth:
-    for subs in subsampling:
-        pixel_format.append("yuv{}p{}".format(subs, bd))
+# testsrc2 is a broad codec stress source: moving edges, color fields, and
+# luma/chroma detail. rgbtestsrc and yuvtestsrc make component-plane mistakes
+# obvious. SMPTE HD bars are the SDR broadcast sanity source.
+SDR_SOURCES = [
+    ("sdr-testsrc2", "testsrc2", RGB_PIXEL_FORMATS + YUV_PIXEL_FORMATS),
+    ("sdr-rgbtestsrc", "rgbtestsrc", RGB_PIXEL_FORMATS),
+    ("sdr-yuvtestsrc", "yuvtestsrc", YUV_PIXEL_FORMATS),
+    ("sdr-smptehdbars", "smptehdbars", YUV_PIXEL_FORMATS),
+]
 
-resolution=["640x480", "1280x720", "1920x1080", "3840x2160", "7680x4320"]
+HDR_TRANSFERS = ["pq", "hlg"]
+HDR_RESOLUTIONS = ["1920x1080", "3840x2160", "7680x4320"]
 
-name_pattern = "pattern-{}-{}-{}.{}"
 
-# -n to always refuse overwriting to allow rerunning the script
-fmt = "ffmpeg -n -f lavfi -i testsrc=duration=3:size={}:rate=30 -pix_fmt {} -c:v {} {}"
+def codec_supports_pixel_format(codec, pix_fmt):
+    if codec == "vp8" and ("10" in pix_fmt or "12" in pix_fmt):
+        return False
+    if codec == "h264" and "12" in pix_fmt:
+        return False
+    return True
 
-def write_command(f, name, command):
-    f.write("[ -f {} ] || ".format(name))
-    f.write(command)
+
+def output_name(source_name, resolution, codec_lib, pix_fmt, container):
+    return f"{source_name}-{resolution}-{codec_lib}-{pix_fmt}.{container}"
+
+
+def sdr_input_filter(source_filter, resolution):
+    return f"{source_filter}=duration={DURATION}:size={resolution}:rate={RATE}"
+
+
+def sdr_encode_command(source_filter, resolution, pix_fmt, codec_lib, output):
+    return (
+        "ffmpeg -n -f lavfi "
+        f"-i {sdr_input_filter(source_filter, resolution)} "
+        "-color_primaries bt709 -color_trc bt709 -colorspace bt709 "
+        f"-pix_fmt {pix_fmt} -c:v {codec_lib} {output}"
+    )
+
+
+def write_command(f, output, command):
+    f.write(f"[ -f {output} ] || {command}\n")
+
+
+def write_sdr_commands(f):
+    f.write("# SDR vectors\n")
+    for source_name, source_filter, pixel_formats in SDR_SOURCES:
+        for codec, codec_lib, containers in CODECS:
+            for resolution in RESOLUTIONS:
+                for pix_fmt in pixel_formats:
+                    if not codec_supports_pixel_format(codec, pix_fmt):
+                        continue
+                    for container in containers:
+                        output = output_name(
+                            source_name, resolution, codec_lib, pix_fmt, container
+                        )
+                        write_command(
+                            f,
+                            output,
+                            sdr_encode_command(
+                                source_filter, resolution, pix_fmt, codec_lib, output
+                            ),
+                        )
     f.write("\n")
 
 
-with open("commands.sh", "w") as f:
-    f.write("#!/bin/sh -xe\n\n")
-    for (codec, container) in codec:
-        for res in resolution:
-            for format in pixel_format:
-                if "libvpx" in codectolib[codec] and format == "rgba":
-                    # no support for rgba in libvpx
-                    continue
-                if codec == "vp8" and ("10" in format or "12" in format):
-                    # libvpx-vp8 doesn't support 10 and 12 bits
-                    continue
-                if codec == "h264" and ("12" in format or format == "rgba"):
-                    continue
-                name = name_pattern.format(res, codectolib[codec], format, container)
-                print(name)
-                write_command(f, name, fmt.format(res, format, codectolib[codec], name))
+def write_hdr_commands(f):
+    f.write("# HDR BT.2111 vectors. Raw Y4M generation lives in Rust.\n")
+    for resolution in HDR_RESOLUTIONS:
+        for transfer in HDR_TRANSFERS:
+            f.write(
+                "[ -f bt2111-{transfer}-{resolution}-libvpx-vp9-yuv420p10.webm ] || "
+                "RESOLUTION={resolution} FRAMES=90 ./generate-bt2111.sh\n".format(
+                    transfer=transfer, resolution=resolution
+                )
+            )
 
-os.chmod("commands.sh", 0o755)
+
+def main():
+    with open("commands.sh", "w") as f:
+        f.write("#!/bin/sh -eu\n\n")
+        write_sdr_commands(f)
+        write_hdr_commands(f)
+
+    os.chmod("commands.sh", 0o755)
+
+
+if __name__ == "__main__":
+    main()
