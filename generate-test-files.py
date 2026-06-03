@@ -115,12 +115,16 @@ def write_hdr_commands(f):
     f.write("# HDR BT.2111 vectors. Raw Y4M generation lives in Rust.\n")
     for resolution in HDR_RESOLUTIONS:
         for transfer in HDR_TRANSFERS:
-            f.write(
-                "[ -f bt2111-{transfer}-{resolution}-libvpx-vp9-yuv420p10.webm ] || "
-                "RESOLUTION={resolution} FRAMES=90 ./generate-bt2111.sh\n".format(
-                    transfer=transfer, resolution=resolution
+            for codec_lib, container in (("libvpx-vp9", "webm"), ("libx265", "mp4")):
+                f.write(
+                    "[ -f bt2111-{transfer}-{resolution}-{codec_lib}-yuv420p10.{container} ] || "
+                    "RESOLUTION={resolution} FRAMES=90 ./generate-bt2111.sh\n".format(
+                        transfer=transfer,
+                        resolution=resolution,
+                        codec_lib=codec_lib,
+                        container=container,
+                    )
                 )
-            )
 
 
 def main():

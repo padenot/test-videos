@@ -824,8 +824,14 @@
 
 # HDR BT.2111 vectors. Raw Y4M generation lives in Rust.
 [ -f bt2111-pq-1920x1080-libvpx-vp9-yuv420p10.webm ] || RESOLUTION=1920x1080 FRAMES=90 ./generate-bt2111.sh
+[ -f bt2111-pq-1920x1080-libx265-yuv420p10.mp4 ] || RESOLUTION=1920x1080 FRAMES=90 ./generate-bt2111.sh
 [ -f bt2111-hlg-1920x1080-libvpx-vp9-yuv420p10.webm ] || RESOLUTION=1920x1080 FRAMES=90 ./generate-bt2111.sh
+[ -f bt2111-hlg-1920x1080-libx265-yuv420p10.mp4 ] || RESOLUTION=1920x1080 FRAMES=90 ./generate-bt2111.sh
 [ -f bt2111-pq-3840x2160-libvpx-vp9-yuv420p10.webm ] || RESOLUTION=3840x2160 FRAMES=90 ./generate-bt2111.sh
+[ -f bt2111-pq-3840x2160-libx265-yuv420p10.mp4 ] || RESOLUTION=3840x2160 FRAMES=90 ./generate-bt2111.sh
 [ -f bt2111-hlg-3840x2160-libvpx-vp9-yuv420p10.webm ] || RESOLUTION=3840x2160 FRAMES=90 ./generate-bt2111.sh
+[ -f bt2111-hlg-3840x2160-libx265-yuv420p10.mp4 ] || RESOLUTION=3840x2160 FRAMES=90 ./generate-bt2111.sh
 [ -f bt2111-pq-7680x4320-libvpx-vp9-yuv420p10.webm ] || RESOLUTION=7680x4320 FRAMES=90 ./generate-bt2111.sh
+[ -f bt2111-pq-7680x4320-libx265-yuv420p10.mp4 ] || RESOLUTION=7680x4320 FRAMES=90 ./generate-bt2111.sh
 [ -f bt2111-hlg-7680x4320-libvpx-vp9-yuv420p10.webm ] || RESOLUTION=7680x4320 FRAMES=90 ./generate-bt2111.sh
+[ -f bt2111-hlg-7680x4320-libx265-yuv420p10.mp4 ] || RESOLUTION=7680x4320 FRAMES=90 ./generate-bt2111.sh

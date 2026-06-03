@@ -21,7 +21,21 @@ ffmpeg -n -i "bt2111-pq-$SIZE-yuv420p10.y4m" \
   -c:v libvpx-vp9 -pix_fmt yuv420p10le \
   "bt2111-pq-$SIZE-libvpx-vp9-yuv420p10.webm"
 
+ffmpeg -n -i "bt2111-pq-$SIZE-yuv420p10.y4m" \
+  -vf setparams=color_primaries=bt2020:color_trc=smpte2084:colorspace=bt2020nc:range=tv \
+  -c:v libx265 -pix_fmt yuv420p10le -preset ultrafast -threads 2 \
+  -x265-params pools=2:frame-threads=1:log-level=error:colorprim=bt2020:transfer=smpte2084:colormatrix=bt2020nc:range=limited \
+  -tag:v hvc1 \
+  "bt2111-pq-$SIZE-libx265-yuv420p10.mp4"
+
 ffmpeg -n -i "bt2111-hlg-$SIZE-yuv420p10.y4m" \
   -vf setparams=color_primaries=bt2020:color_trc=arib-std-b67:colorspace=bt2020nc:range=tv \
   -c:v libvpx-vp9 -pix_fmt yuv420p10le \
   "bt2111-hlg-$SIZE-libvpx-vp9-yuv420p10.webm"
+
+ffmpeg -n -i "bt2111-hlg-$SIZE-yuv420p10.y4m" \
+  -vf setparams=color_primaries=bt2020:color_trc=arib-std-b67:colorspace=bt2020nc:range=tv \
+  -c:v libx265 -pix_fmt yuv420p10le -preset ultrafast -threads 2 \
+  -x265-params pools=2:frame-threads=1:log-level=error:colorprim=bt2020:transfer=arib-std-b67:colormatrix=bt2020nc:range=limited \
+  -tag:v hvc1 \
+  "bt2111-hlg-$SIZE-libx265-yuv420p10.mp4"

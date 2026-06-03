@@ -52,7 +52,11 @@ select {
 
 .main {
   min-width: 0;
+  height: 100vh;
   padding: 22px;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  overflow: hidden;
 }
 
 .title {
@@ -175,11 +179,15 @@ select {
 }
 
 .preview {
+  position: sticky;
+  top: 0;
+  z-index: 2;
   display: grid;
   grid-template-columns: minmax(320px, 48vw) minmax(260px, 1fr);
   gap: 18px;
   align-items: stretch;
   margin-bottom: 18px;
+  background: var(--bg);
 }
 
 .player,
@@ -260,6 +268,14 @@ video {
 
 .table-wrap {
   overflow: hidden;
+  min-height: 0;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+}
+
+.table-scroll {
+  min-height: 0;
+  overflow: auto;
 }
 
 .toolbar {
@@ -341,8 +357,22 @@ tbody tr.selected {
     border-bottom: 1px solid var(--line);
   }
 
+  .main {
+    height: auto;
+    overflow: visible;
+  }
+
   .preview {
+    position: static;
     grid-template-columns: 1fr;
+  }
+
+  .table-wrap {
+    display: block;
+  }
+
+  .table-scroll {
+    overflow: visible;
   }
 
   .name {
@@ -411,19 +441,21 @@ tbody tr.selected {
         <strong>Corpus</strong>
         <span class="hint">Rows update as you type. Click a row to preview.</span>
       </div>
-      <table>
-        <thead>
-          <tr>
-            <th>Name</th>
-            <th>Codec</th>
-            <th>Size</th>
-            <th>Format</th>
-            <th>Container</th>
-          </tr>
-        </thead>
-        <tbody id="rows"></tbody>
-      </table>
-      <div id="empty" class="empty" hidden>No videos match the current filters.</div>
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Codec</th>
+              <th>Size</th>
+              <th>Format</th>
+              <th>Container</th>
+            </tr>
+          </thead>
+          <tbody id="rows"></tbody>
+        </table>
+        <div id="empty" class="empty" hidden>No videos match the current filters.</div>
+      </div>
     </section>
   </main>
 </div>
@@ -478,6 +510,7 @@ function parseName(path) {
 
   const codecMap = [
     ["libvpx-vp9", "VP9"],
+    ["libsvtav1", "AV1"],
     ["libaom-av1", "AV1"],
     ["libx264", "H.264"],
     ["libx265", "HEVC"],
