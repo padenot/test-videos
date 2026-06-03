@@ -195,9 +195,8 @@ select {
   min-height: 0;
   z-index: 2;
   display: grid;
-  grid-template-columns: minmax(560px, 64vw) minmax(260px, 1fr);
+  grid-template-rows: auto auto;
   gap: 8px;
-  align-items: stretch;
   background: var(--bg);
 }
 
@@ -223,7 +222,6 @@ video {
 .details {
   padding: 8px;
   min-width: 0;
-  max-height: calc(64vw * 9 / 16);
   overflow: auto;
 }
 
@@ -231,6 +229,13 @@ video {
   margin: 0 0 6px;
   font-size: 13px;
   overflow-wrap: anywhere;
+}
+
+.details-head {
+  display: flex;
+  gap: 8px;
+  align-items: start;
+  justify-content: space-between;
 }
 
 .tags {
@@ -256,7 +261,8 @@ video {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
-  margin-top: 8px;
+  margin-top: 0;
+  flex: 0 0 auto;
 }
 
 .action {
@@ -423,7 +429,6 @@ tbody tr.selected {
 
   .preview {
     position: static;
-    grid-template-columns: 1fr;
   }
 
   .table-wrap {
@@ -493,12 +498,14 @@ tbody tr.selected {
         <video id="player" controls preload="metadata"></video>
       </div>
       <div class="details">
-        <h2 id="selectedName">No video selected</h2>
-        <div id="selectedTags" class="tags"></div>
-        <div class="actions">
-          <a id="openLink" class="action primary" href="#" target="_blank" rel="noopener">Open</a>
-          <a id="downloadLink" class="action" href="#" download>Download</a>
+        <div class="details-head">
+          <h2 id="selectedName">No video selected</h2>
+          <div class="actions">
+            <a id="openLink" class="action primary" href="#" target="_blank" rel="noopener">Open</a>
+            <a id="downloadLink" class="action" href="#" download>Download</a>
+          </div>
         </div>
+        <div id="selectedTags" class="tags"></div>
       </div>
     </section>
 
