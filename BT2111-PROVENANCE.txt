@@ -1,0 +1,17 @@
+BT.2111 HDR clips
+=================
+
+The authoritative in-repository generator is the Rust `bt2111-gen` tool in
+`src/`. It writes raw Y4M `yuv420p10le` frames directly and has no Rust crate
+dependencies. Use `generate-bt2111.sh` to generate PQ and HLG Y4M files and
+then encode them with ffmpeg.
+
+The existing VP9/WebM files are:
+
+  bt2111-pq-1920x1080-libvpx-vp9-yuv420p10.webm
+  bt2111-hlg-1920x1080-libvpx-vp9-yuv420p10.webm
+
+Historical note: the first copies of these files were generated from
+test-full-band/tfb-video as an external build-time reference tool. The GPL-3
+generator source was not vendored here. The Rust generator replaces that
+temporary provenance.
