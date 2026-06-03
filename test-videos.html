@@ -299,11 +299,12 @@ video {
 table {
   width: 100%;
   border-collapse: collapse;
+  min-width: 1180px;
 }
 
 th,
 td {
-  padding: 10px 12px;
+  padding: 9px 10px;
   border-bottom: 1px solid var(--line);
   text-align: left;
   vertical-align: middle;
@@ -337,6 +338,21 @@ tbody tr.selected {
 
 .mono {
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+.flags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.flag {
+  padding: 2px 6px;
+  border-radius: 999px;
+  background: #eef2f7;
+  color: #4b5563;
+  font-size: 11px;
+  white-space: nowrap;
 }
 
 .empty {
@@ -446,9 +462,16 @@ tbody tr.selected {
           <thead>
             <tr>
               <th>Name</th>
+              <th>Source</th>
               <th>Codec</th>
+              <th>Profile</th>
               <th>Size</th>
               <th>Format</th>
+              <th>Depth</th>
+              <th>Primaries</th>
+              <th>Matrix</th>
+              <th>Transfer</th>
+              <th>Flags</th>
               <th>Container</th>
             </tr>
           </thead>
@@ -507,6 +530,15 @@ function parseName(path) {
   const resolution = (stem.match(/(\d+x\d+)/) || [])[1] || "";
   const hdr = stem.startsWith("bt2111-") || /\b(hdr|pq|hlg|bt2020|smpte2084|arib-std-b67)\b/i.test(stem);
   const transfer = stem.includes("-pq-") ? "PQ" : stem.includes("-hlg-") ? "HLG" : "";
+  const source = stem.startsWith("bt2111-") ? "BT.2111" :
+    stem.startsWith("sdr-testsrc2-") ? "testsrc2" :
+    stem.startsWith("sdr-rgbtestsrc-") ? "rgbtestsrc" :
+    stem.startsWith("sdr-yuvtestsrc-") ? "yuvtestsrc" :
+    stem.startsWith("sdr-smptehdbars-") ? "smptehdbars" : "";
+  const profileMatch = stem.match(/-(baseline|main|high|profile[0-3])-/);
+  const profile = profileMatch ? profileMatch[1].replace(/^profile/, "profile ") : "";
+  const rotation = (stem.match(/-rotate(90|180|270)-/) || [])[1] || "";
+  const alpha = stem.includes("-alpha-");
 
   const codecMap = [
     ["libvpx-vp9", "VP9"],
@@ -517,25 +549,54 @@ function parseName(path) {
     ["libvpx", "VP8"],
   ];
   const codec = (codecMap.find(([needle]) => stem.includes(needle)) || ["", "Unknown"])[1];
-  const formatMatch = stem.match(/-(gbrp(?:10le|12le|14le|16le)?|rgb48le|rgba|yuv(?:420|422|444)p(?:10|12)?)(?=\.|$)/);
+  const formatMatch = stem.match(/-(gbrp(?:10le|12le|14le|16le)?|rgb48le|rgba|yuva420p|yuv(?:420|422|444)p(?:10|12)?)(?=\.|$)/);
   const pixelFormat = formatMatch ? formatMatch[1] : "";
   const bitDepth = pixelFormat.includes("16") || pixelFormat === "rgb48le" ? 16 :
     pixelFormat.includes("14") ? 14 :
     pixelFormat.includes("12") ? 12 :
     pixelFormat.includes("10") ? 10 : 8;
+  const colorPrimaries = hdr ? "BT.2020" : "BT.709";
+  const colorMatrix = hdr ? "BT.2020nc" : "BT.709";
+  const transferFunction = transfer || "BT.709";
+  const flags = [
+    hdr ? "HDR" : "",
+    alpha ? "alpha" : "",
+    rotation ? "rotate " + rotation : "",
+  ].filter(Boolean);
 
   return {
     file,
     href: path,
     stem,
     container,
+    source,
     resolution,
     codec,
+    profile,
     pixelFormat,
     bitDepth,
+    colorPrimaries,
+    colorMatrix,
+    transferFunction,
     hdr,
     transfer,
-    haystack: [file, container, resolution, codec, pixelFormat, bitDepth + "bit", hdr ? "hdr bt2111 bt2020" : "", transfer].join(" ").toLowerCase(),
+    alpha,
+    rotation,
+    flags,
+    haystack: [
+      file,
+      source,
+      container,
+      resolution,
+      codec,
+      profile,
+      pixelFormat,
+      bitDepth + "bit",
+      colorPrimaries,
+      colorMatrix,
+      transferFunction,
+      flags.join(" "),
+    ].join(" ").toLowerCase(),
   };
 }
 
@@ -682,13 +743,17 @@ function renderSelected() {
   els.downloadLink.download = video.file;
 
   [
+    video.source,
     video.codec,
+    video.profile,
     video.resolution,
     video.pixelFormat,
     video.bitDepth + "-bit",
+    video.colorPrimaries,
+    video.colorMatrix,
+    video.transferFunction,
     video.container,
-    video.hdr ? "HDR" : "",
-    video.transfer,
+    ...video.flags,
   ].filter(Boolean).forEach((value) => els.selectedTags.append(tag(value, value === "HDR" ? "hdr" : "")));
 }
 
@@ -700,9 +765,16 @@ function renderRows() {
     row.className = state.selected && state.selected.file === video.file ? "selected" : "";
     row.innerHTML = `
       <td class="name">${video.file}</td>
+      <td>${video.source || "-"}</td>
       <td>${video.codec}${video.hdr ? " <span class=\"tag hdr\">HDR</span>" : ""}</td>
+      <td class="mono">${video.profile || "-"}</td>
       <td class="mono">${video.resolution || "-"}</td>
       <td class="mono">${video.pixelFormat || "-"}</td>
+      <td class="mono">${video.bitDepth}</td>
+      <td class="mono">${video.colorPrimaries}</td>
+      <td class="mono">${video.colorMatrix}</td>
+      <td class="mono">${video.transferFunction}</td>
+      <td><span class="flags">${video.flags.map((flag) => `<span class="flag">${flag}</span>`).join("") || "-"}</span></td>
       <td class="mono">${video.container}</td>
     `;
     row.addEventListener("click", () => {
