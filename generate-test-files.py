@@ -57,9 +57,20 @@ HDR_RESOLUTIONS = ["1920x1080", "3840x2160", "7680x4320"]
 H264_PROFILES = ["baseline", "main", "high"]
 VP9_PROFILES = [
     ("profile0", "0", "yuv420p"),
+    ("profile1", "1", "yuv422p"),
+    ("profile1", "1", "yuv440p"),
     ("profile1", "1", "yuv444p"),
+    ("profile1", "1", "gbrp"),
     ("profile2", "2", "yuv420p10"),
+    ("profile2", "2", "yuv420p12"),
+    ("profile3", "3", "yuv422p10"),
+    ("profile3", "3", "yuv440p10"),
     ("profile3", "3", "yuv444p10"),
+    ("profile3", "3", "yuv422p12"),
+    ("profile3", "3", "yuv440p12"),
+    ("profile3", "3", "yuv444p12"),
+    ("profile3", "3", "gbrp10le"),
+    ("profile3", "3", "gbrp12le"),
 ]
 ROTATIONS = [90, 180, 270]
 BT709_FILTER = "setparams=color_primaries=bt709:color_trc=bt709:colorspace=bt709:range=tv"

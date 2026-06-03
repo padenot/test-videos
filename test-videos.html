@@ -321,6 +321,37 @@ th {
   text-transform: uppercase;
 }
 
+th.sortable {
+  cursor: pointer;
+  user-select: none;
+}
+
+th.sortable button {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-transform: inherit;
+  padding: 0;
+  cursor: pointer;
+}
+
+th.sortable button::after {
+  content: "";
+  display: inline-block;
+  width: 0.8em;
+  color: var(--accent);
+}
+
+th.sortable[aria-sort="ascending"] button::after {
+  content: "^";
+}
+
+th.sortable[aria-sort="descending"] button::after {
+  content: "v";
+}
+
 tbody tr {
   cursor: pointer;
 }
@@ -461,18 +492,18 @@ tbody tr.selected {
         <table>
           <thead>
             <tr>
-              <th>Name</th>
-              <th>Source</th>
-              <th>Codec</th>
-              <th>Profile</th>
-              <th>Size</th>
-              <th>Format</th>
-              <th>Depth</th>
-              <th>Primaries</th>
-              <th>Matrix</th>
-              <th>Transfer</th>
-              <th>Flags</th>
-              <th>Container</th>
+              <th class="sortable" data-sort="file"><button type="button">Name</button></th>
+              <th class="sortable" data-sort="source"><button type="button">Source</button></th>
+              <th class="sortable" data-sort="codec"><button type="button">Codec</button></th>
+              <th class="sortable" data-sort="profile"><button type="button">Profile</button></th>
+              <th class="sortable" data-sort="resolution"><button type="button">Size</button></th>
+              <th class="sortable" data-sort="pixelFormat"><button type="button">Format</button></th>
+              <th class="sortable" data-sort="bitDepth"><button type="button">Depth</button></th>
+              <th class="sortable" data-sort="colorPrimaries"><button type="button">Primaries</button></th>
+              <th class="sortable" data-sort="colorMatrix"><button type="button">Matrix</button></th>
+              <th class="sortable" data-sort="transferFunction"><button type="button">Transfer</button></th>
+              <th class="sortable" data-sort="flagsText"><button type="button">Flags</button></th>
+              <th class="sortable" data-sort="container"><button type="button">Container</button></th>
             </tr>
           </thead>
           <tbody id="rows"></tbody>
@@ -499,6 +530,10 @@ const state = {
     hdrOnly: false,
     tenBitOnly: false,
   },
+  sort: {
+    key: "file",
+    direction: "asc",
+  },
 };
 
 const els = {
@@ -521,6 +556,7 @@ const els = {
   downloadLink: document.getElementById("downloadLink"),
   rows: document.getElementById("rows"),
   empty: document.getElementById("empty"),
+  headers: [...document.querySelectorAll("th.sortable")],
 };
 
 function parseName(path) {
@@ -549,7 +585,7 @@ function parseName(path) {
     ["libvpx", "VP8"],
   ];
   const codec = (codecMap.find(([needle]) => stem.includes(needle)) || ["", "Unknown"])[1];
-  const formatMatch = stem.match(/-(gbrp(?:10le|12le|14le|16le)?|rgb48le|rgba|yuva420p|yuv(?:420|422|444)p(?:10|12)?)(?=\.|$)/);
+  const formatMatch = stem.match(/-(gbrp(?:10le|12le|14le|16le)?|rgb48le|rgba|yuva420p|yuv(?:420|422|440|444)p(?:10|12)?)(?=\.|$)/);
   const pixelFormat = formatMatch ? formatMatch[1] : "";
   const bitDepth = pixelFormat.includes("16") || pixelFormat === "rgb48le" ? 16 :
     pixelFormat.includes("14") ? 14 :
@@ -563,6 +599,7 @@ function parseName(path) {
     alpha ? "alpha" : "",
     rotation ? "rotate " + rotation : "",
   ].filter(Boolean);
+  const flagsText = flags.join(" ");
 
   return {
     file,
@@ -583,6 +620,7 @@ function parseName(path) {
     alpha,
     rotation,
     flags,
+    flagsText,
     haystack: [
       file,
       source,
@@ -595,7 +633,7 @@ function parseName(path) {
       colorPrimaries,
       colorMatrix,
       transferFunction,
-      flags.join(" "),
+      flagsText,
     ].join(" ").toLowerCase(),
   };
 }
@@ -695,6 +733,30 @@ function fuzzyScore(query, target) {
   return total;
 }
 
+function sortValue(video, key) {
+  if (key === "resolution") {
+    const parts = video.resolution.split("x").map(Number);
+    return parts.length === 2 ? parts[0] * parts[1] : 0;
+  }
+  return video[key] ?? "";
+}
+
+function compareVideos(a, b) {
+  const { key, direction } = state.sort;
+  const av = sortValue(a.video, key);
+  const bv = sortValue(b.video, key);
+  let result;
+  if (typeof av === "number" && typeof bv === "number") {
+    result = av - bv;
+  } else {
+    result = String(av).localeCompare(String(bv), undefined, { numeric: true, sensitivity: "base" });
+  }
+  if (result === 0) {
+    result = a.video.file.localeCompare(b.video.file, undefined, { numeric: true, sensitivity: "base" });
+  }
+  return direction === "desc" ? -result : result;
+}
+
 function applyFilters() {
   const query = state.filters.query;
   state.filtered = state.videos
@@ -708,7 +770,7 @@ function applyFilters() {
       if (state.filters.tenBitOnly && video.bitDepth < 10) return false;
       return true;
     })
-    .sort((a, b) => b.score - a.score || a.video.file.localeCompare(b.video.file))
+    .sort(compareVideos)
     .map(({ video }) => video);
 
   if (!state.selected || !state.filtered.some((video) => video.file === state.selected.file)) {
@@ -797,6 +859,10 @@ function renderMetrics() {
 function render() {
   els.hdrOnly.setAttribute("aria-pressed", String(state.filters.hdrOnly));
   els.tenBitOnly.setAttribute("aria-pressed", String(state.filters.tenBitOnly));
+  els.headers.forEach((header) => {
+    const active = header.dataset.sort === state.sort.key;
+    header.setAttribute("aria-sort", active ? (state.sort.direction === "asc" ? "ascending" : "descending") : "none");
+  });
   renderMetrics();
   renderSelected();
   renderRows();
@@ -834,6 +900,16 @@ function bindControls() {
     els.resolution.value = "";
     els.container.value = "";
     applyFilters();
+  });
+  els.headers.forEach((header) => {
+    header.addEventListener("click", () => {
+      const key = header.dataset.sort;
+      state.sort = {
+        key,
+        direction: state.sort.key === key && state.sort.direction === "asc" ? "desc" : "asc",
+      };
+      applyFilters();
+    });
   });
 }
 
