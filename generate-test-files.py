@@ -14,11 +14,16 @@ RESOLUTIONS = [
 ]
 
 CODECS = [
-    ("av1", "libaom-av1", ["webm", "mp4"]),
-    ("h264", "libx264", ["mp4"]),
-    ("h265", "libx265", ["mp4"]),
-    ("vp8", "libvpx", ["webm"]),
-    ("vp9", "libvpx-vp9", ["webm", "mp4"]),
+    ("av1", "libsvtav1", ["webm", "mp4"], "-preset 11 -crf 35 -svtav1-params lp=2"),
+    ("h264", "libx264", ["mp4"], "-preset ultrafast -threads 2"),
+    (
+        "h265",
+        "libx265",
+        ["mp4"],
+        "-preset ultrafast -threads 2 -x265-params pools=2:frame-threads=1:log-level=error",
+    ),
+    ("vp8", "libvpx", ["webm"], "-deadline realtime -cpu-used 8 -threads 2"),
+    ("vp9", "libvpx-vp9", ["webm", "mp4"], "-deadline realtime -cpu-used 8 -threads 2"),
 ]
 
 RGB_PIXEL_FORMATS = ["gbrp", "gbrp10le", "gbrp12le", "gbrp14le", "gbrp16le"]
@@ -49,6 +54,8 @@ HDR_RESOLUTIONS = ["1920x1080", "3840x2160", "7680x4320"]
 
 
 def codec_supports_pixel_format(codec, pix_fmt):
+    if codec == "av1" and pix_fmt not in ("yuv420p", "yuv420p10"):
+        return False
     if codec == "vp8" and ("10" in pix_fmt or "12" in pix_fmt):
         return False
     if codec == "h264" and "12" in pix_fmt:
@@ -64,12 +71,12 @@ def sdr_input_filter(source_filter, resolution):
     return f"{source_filter}=duration={DURATION}:size={resolution}:rate={RATE}"
 
 
-def sdr_encode_command(source_filter, resolution, pix_fmt, codec_lib, output):
+def sdr_encode_command(source_filter, resolution, pix_fmt, codec_lib, codec_options, output):
     return (
         "ffmpeg -n -f lavfi "
         f"-i {sdr_input_filter(source_filter, resolution)} "
         "-color_primaries bt709 -color_trc bt709 -colorspace bt709 "
-        f"-pix_fmt {pix_fmt} -c:v {codec_lib} {output}"
+        f"-pix_fmt {pix_fmt} -c:v {codec_lib} {codec_options} {output}"
     )
 
 
@@ -80,7 +87,7 @@ def write_command(f, output, command):
 def write_sdr_commands(f):
     f.write("# SDR vectors\n")
     for source_name, source_filter, pixel_formats in SDR_SOURCES:
-        for codec, codec_lib, containers in CODECS:
+        for codec, codec_lib, containers, codec_options in CODECS:
             for resolution in RESOLUTIONS:
                 for pix_fmt in pixel_formats:
                     if not codec_supports_pixel_format(codec, pix_fmt):
@@ -93,7 +100,12 @@ def write_sdr_commands(f):
                             f,
                             output,
                             sdr_encode_command(
-                                source_filter, resolution, pix_fmt, codec_lib, output
+                                source_filter,
+                                resolution,
+                                pix_fmt,
+                                codec_lib,
+                                codec_options,
+                                output,
                             ),
                         )
     f.write("\n")
