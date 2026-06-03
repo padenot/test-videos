@@ -16,6 +16,8 @@
   --accent-weak: #c7d7e6;
   --good: #17624f;
   --warn: #7a5300;
+  --sidebar-width: 330px;
+  --preview-height: 760px;
 }
 
 * {
@@ -38,13 +40,12 @@ select {
 .shell {
   height: 100vh;
   display: grid;
-  grid-template-columns: minmax(260px, 330px) minmax(0, 1fr);
+  grid-template-columns: var(--sidebar-width) 6px minmax(0, 1fr);
 }
 
 .sidebar {
   min-width: 0;
   padding: 8px 10px;
-  border-right: 1px solid var(--line);
   background: var(--panel);
   display: grid;
   grid-template-rows: auto auto auto auto minmax(0, 1fr);
@@ -58,9 +59,51 @@ select {
   min-height: 0;
   padding: 8px;
   display: grid;
-  grid-template-rows: auto minmax(0, 1fr);
-  gap: 8px;
+  grid-template-rows: minmax(260px, var(--preview-height)) 6px minmax(120px, 1fr);
+  gap: 0;
   overflow: hidden;
+}
+
+.splitter {
+  background: var(--bg);
+  position: relative;
+}
+
+.splitter::after {
+  content: "";
+  position: absolute;
+  background: #555555;
+}
+
+.splitter.vertical {
+  cursor: col-resize;
+  border-left: 1px solid var(--line);
+  border-right: 1px solid var(--line);
+}
+
+.splitter.vertical::after {
+  top: 0;
+  bottom: 0;
+  left: 2px;
+  width: 1px;
+}
+
+.splitter.horizontal {
+  cursor: row-resize;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+
+.splitter.horizontal::after {
+  left: 0;
+  right: 0;
+  top: 2px;
+  height: 1px;
+}
+
+body.resizing {
+  cursor: var(--resize-cursor);
+  user-select: none;
 }
 
 .title {
@@ -195,9 +238,10 @@ select {
   min-height: 0;
   z-index: 2;
   display: grid;
-  grid-template-rows: auto auto;
+  grid-template-rows: minmax(0, 1fr) auto;
   gap: 8px;
   background: var(--bg);
+  overflow: hidden;
 }
 
 .player,
@@ -210,18 +254,23 @@ select {
 .player {
   overflow: hidden;
   background: #686868;
+  min-height: 0;
 }
 
 video {
   display: block;
   width: 100%;
-  aspect-ratio: 16 / 9;
+  height: 100%;
+  min-height: 0;
+  aspect-ratio: auto;
+  object-fit: contain;
   background: #707070;
 }
 
 .details {
   padding: 8px;
   min-width: 0;
+  max-height: 96px;
   overflow: auto;
 }
 
@@ -423,8 +472,12 @@ tbody tr.selected {
   }
 
   .main {
-    grid-template-columns: 1fr;
+    grid-template-rows: auto auto;
     overflow: visible;
+  }
+
+  .splitter {
+    display: none;
   }
 
   .preview {
@@ -492,6 +545,8 @@ tbody tr.selected {
     <div id="status" class="status">Loading video index...</div>
   </aside>
 
+  <div id="sidebarSplitter" class="splitter vertical" role="separator" aria-orientation="vertical" aria-label="Resize filters"></div>
+
   <main class="main">
     <section class="preview">
       <div class="player">
@@ -508,6 +563,8 @@ tbody tr.selected {
         <div id="selectedTags" class="tags"></div>
       </div>
     </section>
+
+    <div id="mainSplitter" class="splitter horizontal" role="separator" aria-orientation="horizontal" aria-label="Resize player and corpus"></div>
 
     <section class="table-wrap">
       <div class="toolbar">
@@ -589,7 +646,105 @@ const els = {
   rows: document.getElementById("rows"),
   empty: document.getElementById("empty"),
   headers: [...document.querySelectorAll("th.sortable")],
+  shell: document.querySelector(".shell"),
+  main: document.querySelector(".main"),
+  sidebarSplitter: document.getElementById("sidebarSplitter"),
+  mainSplitter: document.getElementById("mainSplitter"),
 };
+
+function readNumber(key) {
+  try {
+    const value = Number(localStorage.getItem(key));
+    return Number.isFinite(value) ? value : null;
+  } catch (_) {
+    return null;
+  }
+}
+
+function writeNumber(key, value) {
+  try {
+    localStorage.setItem(key, String(Math.round(value)));
+  } catch (_) {}
+}
+
+function clamp(value, min, max) {
+  return Math.min(Math.max(value, min), max);
+}
+
+function setSidebarWidth(width) {
+  const max = Math.max(260, window.innerWidth - 520);
+  const clamped = clamp(width, 220, max);
+  document.documentElement.style.setProperty("--sidebar-width", Math.round(clamped) + "px");
+  writeNumber("testVideosSidebarWidth", clamped);
+}
+
+function setPreviewHeight(height) {
+  const mainHeight = els.main.getBoundingClientRect().height;
+  const max = Math.max(320, mainHeight - 160);
+  const clamped = clamp(height, 260, max);
+  document.documentElement.style.setProperty("--preview-height", Math.round(clamped) + "px");
+  writeNumber("testVideosPreviewHeight", clamped);
+}
+
+function initPanelSizes() {
+  const sidebarWidth = readNumber("testVideosSidebarWidth");
+  const previewHeight = readNumber("testVideosPreviewHeight");
+  if (sidebarWidth) setSidebarWidth(sidebarWidth);
+  if (previewHeight) setPreviewHeight(previewHeight);
+}
+
+function bindPanelResizers() {
+  els.sidebarSplitter.addEventListener("pointerdown", (event) => {
+    event.preventDefault();
+    els.sidebarSplitter.setPointerCapture(event.pointerId);
+    document.body.style.setProperty("--resize-cursor", "col-resize");
+    document.body.classList.add("resizing");
+    const startX = event.clientX;
+    const startWidth = document.querySelector(".sidebar").getBoundingClientRect().width;
+
+    function move(moveEvent) {
+      setSidebarWidth(startWidth + moveEvent.clientX - startX);
+    }
+
+    function up(upEvent) {
+      els.sidebarSplitter.releasePointerCapture(upEvent.pointerId);
+      document.body.classList.remove("resizing");
+      window.removeEventListener("pointermove", move);
+      window.removeEventListener("pointerup", up);
+    }
+
+    window.addEventListener("pointermove", move);
+    window.addEventListener("pointerup", up);
+  });
+
+  els.mainSplitter.addEventListener("pointerdown", (event) => {
+    event.preventDefault();
+    els.mainSplitter.setPointerCapture(event.pointerId);
+    document.body.style.setProperty("--resize-cursor", "row-resize");
+    document.body.classList.add("resizing");
+    const startY = event.clientY;
+    const startHeight = document.querySelector(".preview").getBoundingClientRect().height;
+
+    function move(moveEvent) {
+      setPreviewHeight(startHeight + moveEvent.clientY - startY);
+    }
+
+    function up(upEvent) {
+      els.mainSplitter.releasePointerCapture(upEvent.pointerId);
+      document.body.classList.remove("resizing");
+      window.removeEventListener("pointermove", move);
+      window.removeEventListener("pointerup", up);
+    }
+
+    window.addEventListener("pointermove", move);
+    window.addEventListener("pointerup", up);
+  });
+
+  window.addEventListener("resize", () => {
+    setSidebarWidth(document.querySelector(".sidebar").getBoundingClientRect().width);
+    setPreviewHeight(document.querySelector(".preview").getBoundingClientRect().height);
+  });
+}
 
 function parseName(path) {
   const file = decodeURIComponent(path.split("/").pop());
@@ -968,6 +1123,8 @@ function bindControls() {
 }
 
 async function init() {
+  initPanelSizes();
+  bindPanelResizers();
   bindControls();
   try {
     const { source, links } = await fetchIndex();
