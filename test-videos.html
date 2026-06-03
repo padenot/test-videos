@@ -1,0 +1,755 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Media Test Videos</title>
+<style>
+:root {
+  --bg: #f6f7f9;
+  --panel: #ffffff;
+  --ink: #1d232b;
+  --muted: #5f6b7a;
+  --line: #d9dee6;
+  --accent: #0b6bcb;
+  --accent-weak: #e8f2ff;
+  --good: #147d64;
+  --warn: #9d6b00;
+  --shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font: 14px/1.45 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+button,
+input,
+select {
+  font: inherit;
+}
+
+.shell {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: minmax(280px, 380px) minmax(0, 1fr);
+}
+
+.sidebar {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  padding: 20px;
+  border-right: 1px solid var(--line);
+  background: var(--panel);
+  overflow: auto;
+}
+
+.main {
+  min-width: 0;
+  padding: 22px;
+}
+
+.title {
+  margin: 0 0 4px;
+  font-size: 22px;
+  line-height: 1.15;
+  letter-spacing: 0;
+}
+
+.subtitle {
+  margin: 0 0 18px;
+  color: var(--muted);
+}
+
+.search {
+  width: 100%;
+  height: 42px;
+  padding: 0 12px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: #fff;
+  color: var(--ink);
+  outline: none;
+}
+
+.search:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-weak);
+}
+
+.controls {
+  display: grid;
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.control {
+  display: grid;
+  gap: 6px;
+}
+
+.control label {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 650;
+  text-transform: uppercase;
+}
+
+.select {
+  width: 100%;
+  height: 36px;
+  padding: 0 10px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: #fff;
+  color: var(--ink);
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.chip {
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--ink);
+  padding: 6px 10px;
+  cursor: pointer;
+}
+
+.chip[aria-pressed="true"] {
+  border-color: var(--accent);
+  background: var(--accent-weak);
+  color: #063b73;
+}
+
+.summary {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.metric {
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fbfcfe;
+}
+
+.metric strong {
+  display: block;
+  font-size: 20px;
+}
+
+.metric span {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.status {
+  margin-top: 16px;
+  padding: 10px;
+  border-radius: 8px;
+  background: #f4f6f8;
+  color: var(--muted);
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+
+.status.ok {
+  color: var(--good);
+}
+
+.status.warn {
+  color: var(--warn);
+}
+
+.preview {
+  display: grid;
+  grid-template-columns: minmax(320px, 48vw) minmax(260px, 1fr);
+  gap: 18px;
+  align-items: stretch;
+  margin-bottom: 18px;
+}
+
+.player,
+.details,
+.table-wrap {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel);
+  box-shadow: var(--shadow);
+}
+
+.player {
+  overflow: hidden;
+}
+
+video {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  background: #05070a;
+}
+
+.details {
+  padding: 16px;
+  min-width: 0;
+}
+
+.details h2 {
+  margin: 0 0 12px;
+  font-size: 18px;
+  overflow-wrap: anywhere;
+}
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.tag {
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: #edf0f4;
+  color: #374151;
+  font-size: 12px;
+}
+
+.tag.hdr {
+  background: #fff2cc;
+  color: #6b4e00;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 34px;
+  padding: 0 12px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: #fff;
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.action.primary {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: #fff;
+}
+
+.table-wrap {
+  overflow: hidden;
+}
+
+.toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--line);
+}
+
+.toolbar strong {
+  white-space: nowrap;
+}
+
+.hint {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th,
+td {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--line);
+  text-align: left;
+  vertical-align: middle;
+}
+
+th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: #fbfcfe;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+tbody tr {
+  cursor: pointer;
+}
+
+tbody tr:hover,
+tbody tr.selected {
+  background: var(--accent-weak);
+}
+
+.name {
+  max-width: 48vw;
+  overflow-wrap: anywhere;
+  font-weight: 600;
+}
+
+.mono {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+.empty {
+  padding: 36px 18px;
+  color: var(--muted);
+  text-align: center;
+}
+
+@media (max-width: 900px) {
+  .shell {
+    grid-template-columns: 1fr;
+  }
+
+  .sidebar {
+    position: static;
+    height: auto;
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .preview {
+    grid-template-columns: 1fr;
+  }
+
+  .name {
+    max-width: none;
+  }
+}
+</style>
+
+<div class="shell">
+  <aside class="sidebar">
+    <h1 class="title">Media Test Videos</h1>
+    <p class="subtitle">Fuzzy search the generated corpus and play a selected file.</p>
+
+    <input id="search" class="search" type="search" autocomplete="off" placeholder="Search codec, size, pixel format, hdr...">
+
+    <div class="controls">
+      <div class="control">
+        <label for="codec">Codec</label>
+        <select id="codec" class="select"></select>
+      </div>
+      <div class="control">
+        <label for="resolution">Resolution</label>
+        <select id="resolution" class="select"></select>
+      </div>
+      <div class="control">
+        <label for="container">Container</label>
+        <select id="container" class="select"></select>
+      </div>
+      <div class="control">
+        <label>Quick Filters</label>
+        <div class="chips">
+          <button id="hdrOnly" class="chip" type="button" aria-pressed="false">HDR</button>
+          <button id="tenBitOnly" class="chip" type="button" aria-pressed="false">10+ bit</button>
+          <button id="reset" class="chip" type="button" aria-pressed="false">Reset</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="summary">
+      <div class="metric"><strong id="shownCount">0</strong><span>shown</span></div>
+      <div class="metric"><strong id="totalCount">0</strong><span>total</span></div>
+      <div class="metric"><strong id="codecCount">0</strong><span>codecs</span></div>
+      <div class="metric"><strong id="hdrCount">0</strong><span>HDR</span></div>
+    </div>
+
+    <div id="status" class="status">Loading video index...</div>
+  </aside>
+
+  <main class="main">
+    <section class="preview">
+      <div class="player">
+        <video id="player" controls preload="metadata"></video>
+      </div>
+      <div class="details">
+        <h2 id="selectedName">No video selected</h2>
+        <div id="selectedTags" class="tags"></div>
+        <div class="actions">
+          <a id="openLink" class="action primary" href="#" target="_blank" rel="noopener">Open</a>
+          <a id="downloadLink" class="action" href="#" download>Download</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="table-wrap">
+      <div class="toolbar">
+        <strong>Corpus</strong>
+        <span class="hint">Rows update as you type. Click a row to preview.</span>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Codec</th>
+            <th>Size</th>
+            <th>Format</th>
+            <th>Container</th>
+          </tr>
+        </thead>
+        <tbody id="rows"></tbody>
+      </table>
+      <div id="empty" class="empty" hidden>No videos match the current filters.</div>
+    </section>
+  </main>
+</div>
+
+<script>
+const mediaPattern = /(?:^|["'(<>\s])([^"'(<>\s]+\.(?:mp4|webm))(?:["')<>\s]|$)/gi;
+const sourceCandidates = ["index.htmlk", "index.html", "./", "commands.sh"];
+
+const state = {
+  videos: [],
+  filtered: [],
+  selected: null,
+  filters: {
+    query: "",
+    codec: "",
+    resolution: "",
+    container: "",
+    hdrOnly: false,
+    tenBitOnly: false,
+  },
+};
+
+const els = {
+  search: document.getElementById("search"),
+  codec: document.getElementById("codec"),
+  resolution: document.getElementById("resolution"),
+  container: document.getElementById("container"),
+  hdrOnly: document.getElementById("hdrOnly"),
+  tenBitOnly: document.getElementById("tenBitOnly"),
+  reset: document.getElementById("reset"),
+  shownCount: document.getElementById("shownCount"),
+  totalCount: document.getElementById("totalCount"),
+  codecCount: document.getElementById("codecCount"),
+  hdrCount: document.getElementById("hdrCount"),
+  status: document.getElementById("status"),
+  player: document.getElementById("player"),
+  selectedName: document.getElementById("selectedName"),
+  selectedTags: document.getElementById("selectedTags"),
+  openLink: document.getElementById("openLink"),
+  downloadLink: document.getElementById("downloadLink"),
+  rows: document.getElementById("rows"),
+  empty: document.getElementById("empty"),
+};
+
+function parseName(path) {
+  const file = decodeURIComponent(path.split("/").pop());
+  const container = file.split(".").pop().toLowerCase();
+  const stem = file.slice(0, -(container.length + 1));
+  const resolution = (stem.match(/(\d+x\d+)/) || [])[1] || "";
+  const hdr = stem.startsWith("bt2111-") || /\b(hdr|pq|hlg|bt2020|smpte2084|arib-std-b67)\b/i.test(stem);
+  const transfer = stem.includes("-pq-") ? "PQ" : stem.includes("-hlg-") ? "HLG" : "";
+
+  const codecMap = [
+    ["libvpx-vp9", "VP9"],
+    ["libaom-av1", "AV1"],
+    ["libx264", "H.264"],
+    ["libx265", "HEVC"],
+    ["libvpx", "VP8"],
+  ];
+  const codec = (codecMap.find(([needle]) => stem.includes(needle)) || ["", "Unknown"])[1];
+  const formatMatch = stem.match(/-(gbrp(?:10le|12le|14le|16le)?|rgb48le|rgba|yuv(?:420|422|444)p(?:10|12)?)(?=\.|$)/);
+  const pixelFormat = formatMatch ? formatMatch[1] : "";
+  const bitDepth = pixelFormat.includes("16") || pixelFormat === "rgb48le" ? 16 :
+    pixelFormat.includes("14") ? 14 :
+    pixelFormat.includes("12") ? 12 :
+    pixelFormat.includes("10") ? 10 : 8;
+
+  return {
+    file,
+    href: path,
+    stem,
+    container,
+    resolution,
+    codec,
+    pixelFormat,
+    bitDepth,
+    hdr,
+    transfer,
+    haystack: [file, container, resolution, codec, pixelFormat, bitDepth + "bit", hdr ? "hdr bt2111 bt2020" : "", transfer].join(" ").toLowerCase(),
+  };
+}
+
+function extractMediaLinks(text, baseUrl) {
+  const links = new Set();
+  try {
+    const doc = new DOMParser().parseFromString(text, "text/html");
+    doc.querySelectorAll("a[href], source[src], video[src]").forEach((node) => {
+      const raw = node.getAttribute("href") || node.getAttribute("src");
+      if (raw && /\.(mp4|webm)(?:$|[?#])/i.test(raw)) {
+        links.add(new URL(raw, baseUrl).pathname.split("/").pop());
+      }
+    });
+  } catch (_) {}
+
+  for (const match of text.matchAll(mediaPattern)) {
+    links.add(match[1].split("/").pop());
+  }
+
+  return [...links].filter((link) => /\.(mp4|webm)$/i.test(link));
+}
+
+async function fetchIndex() {
+  const errors = [];
+  for (const candidate of sourceCandidates) {
+    try {
+      const response = await fetch(candidate, { cache: "no-store" });
+      if (!response.ok) {
+        errors.push(candidate + " " + response.status);
+        continue;
+      }
+      const text = await response.text();
+      const links = extractMediaLinks(text, response.url);
+      if (links.length) {
+        return { source: candidate, links };
+      }
+      errors.push(candidate + " had no media links");
+    } catch (error) {
+      errors.push(candidate + " failed");
+    }
+  }
+  throw new Error(errors.join("; "));
+}
+
+function uniqueSorted(values) {
+  return [...new Set(values.filter(Boolean))].sort((a, b) => {
+    const na = Number((a.match(/^\d+/) || [])[0]);
+    const nb = Number((b.match(/^\d+/) || [])[0]);
+    if (na && nb) return na - nb;
+    return a.localeCompare(b, undefined, { numeric: true });
+  });
+}
+
+function fillSelect(select, values, label) {
+  select.innerHTML = "";
+  const all = document.createElement("option");
+  all.value = "";
+  all.textContent = "All " + label;
+  select.append(all);
+  values.forEach((value) => {
+    const option = document.createElement("option");
+    option.value = value;
+    option.textContent = value;
+    select.append(option);
+  });
+}
+
+function fuzzyScore(query, target) {
+  if (!query) return 1;
+  const terms = query.toLowerCase().trim().split(/\s+/).filter(Boolean);
+  let total = 0;
+  for (const term of terms) {
+    let ti = 0;
+    let score = 0;
+    let streak = 0;
+    for (let qi = 0; qi < term.length; qi++) {
+      const ch = term[qi];
+      let found = false;
+      while (ti < target.length) {
+        if (target[ti] === ch) {
+          streak += 1;
+          score += 4 + streak;
+          if (ti === 0 || /[-_\s.]/.test(target[ti - 1])) score += 3;
+          ti += 1;
+          found = true;
+          break;
+        }
+        streak = 0;
+        ti += 1;
+      }
+      if (!found) return 0;
+    }
+    if (target.includes(term)) score += 20;
+    total += score / Math.max(1, target.length);
+  }
+  return total;
+}
+
+function applyFilters() {
+  const query = state.filters.query;
+  state.filtered = state.videos
+    .map((video) => ({ video, score: fuzzyScore(query, video.haystack) }))
+    .filter(({ video, score }) => {
+      if (query && !score) return false;
+      if (state.filters.codec && video.codec !== state.filters.codec) return false;
+      if (state.filters.resolution && video.resolution !== state.filters.resolution) return false;
+      if (state.filters.container && video.container !== state.filters.container) return false;
+      if (state.filters.hdrOnly && !video.hdr) return false;
+      if (state.filters.tenBitOnly && video.bitDepth < 10) return false;
+      return true;
+    })
+    .sort((a, b) => b.score - a.score || a.video.file.localeCompare(b.video.file))
+    .map(({ video }) => video);
+
+  if (!state.selected || !state.filtered.some((video) => video.file === state.selected.file)) {
+    state.selected = state.filtered[0] || null;
+  }
+
+  render();
+}
+
+function tag(text, className = "") {
+  const node = document.createElement("span");
+  node.className = "tag" + (className ? " " + className : "");
+  node.textContent = text;
+  return node;
+}
+
+function renderSelected() {
+  const video = state.selected;
+  els.selectedTags.innerHTML = "";
+  if (!video) {
+    els.player.removeAttribute("src");
+    els.selectedName.textContent = "No video selected";
+    els.openLink.removeAttribute("href");
+    els.downloadLink.removeAttribute("href");
+    return;
+  }
+
+  els.player.src = video.href;
+  els.selectedName.textContent = video.file;
+  els.openLink.href = video.href;
+  els.downloadLink.href = video.href;
+  els.downloadLink.download = video.file;
+
+  [
+    video.codec,
+    video.resolution,
+    video.pixelFormat,
+    video.bitDepth + "-bit",
+    video.container,
+    video.hdr ? "HDR" : "",
+    video.transfer,
+  ].filter(Boolean).forEach((value) => els.selectedTags.append(tag(value, value === "HDR" ? "hdr" : "")));
+}
+
+function renderRows() {
+  els.rows.innerHTML = "";
+  const fragment = document.createDocumentFragment();
+  state.filtered.forEach((video) => {
+    const row = document.createElement("tr");
+    row.className = state.selected && state.selected.file === video.file ? "selected" : "";
+    row.innerHTML = `
+      <td class="name">${video.file}</td>
+      <td>${video.codec}${video.hdr ? " <span class=\"tag hdr\">HDR</span>" : ""}</td>
+      <td class="mono">${video.resolution || "-"}</td>
+      <td class="mono">${video.pixelFormat || "-"}</td>
+      <td class="mono">${video.container}</td>
+    `;
+    row.addEventListener("click", () => {
+      state.selected = video;
+      render();
+    });
+    fragment.append(row);
+  });
+  els.rows.append(fragment);
+  els.empty.hidden = state.filtered.length !== 0;
+}
+
+function renderMetrics() {
+  els.shownCount.textContent = state.filtered.length;
+  els.totalCount.textContent = state.videos.length;
+  els.codecCount.textContent = uniqueSorted(state.videos.map((video) => video.codec)).length;
+  els.hdrCount.textContent = state.videos.filter((video) => video.hdr).length;
+}
+
+function render() {
+  els.hdrOnly.setAttribute("aria-pressed", String(state.filters.hdrOnly));
+  els.tenBitOnly.setAttribute("aria-pressed", String(state.filters.tenBitOnly));
+  renderMetrics();
+  renderSelected();
+  renderRows();
+}
+
+function bindControls() {
+  els.search.addEventListener("input", () => {
+    state.filters.query = els.search.value;
+    applyFilters();
+  });
+  els.codec.addEventListener("change", () => {
+    state.filters.codec = els.codec.value;
+    applyFilters();
+  });
+  els.resolution.addEventListener("change", () => {
+    state.filters.resolution = els.resolution.value;
+    applyFilters();
+  });
+  els.container.addEventListener("change", () => {
+    state.filters.container = els.container.value;
+    applyFilters();
+  });
+  els.hdrOnly.addEventListener("click", () => {
+    state.filters.hdrOnly = !state.filters.hdrOnly;
+    applyFilters();
+  });
+  els.tenBitOnly.addEventListener("click", () => {
+    state.filters.tenBitOnly = !state.filters.tenBitOnly;
+    applyFilters();
+  });
+  els.reset.addEventListener("click", () => {
+    state.filters = { query: "", codec: "", resolution: "", container: "", hdrOnly: false, tenBitOnly: false };
+    els.search.value = "";
+    els.codec.value = "";
+    els.resolution.value = "";
+    els.container.value = "";
+    applyFilters();
+  });
+}
+
+async function init() {
+  bindControls();
+  try {
+    const { source, links } = await fetchIndex();
+    state.videos = uniqueSorted(links).map(parseName);
+    fillSelect(els.codec, uniqueSorted(state.videos.map((video) => video.codec)), "codecs");
+    fillSelect(els.resolution, uniqueSorted(state.videos.map((video) => video.resolution)), "sizes");
+    fillSelect(els.container, uniqueSorted(state.videos.map((video) => video.container)), "containers");
+    els.status.textContent = "Loaded " + state.videos.length + " videos from " + source + ".";
+    els.status.className = "status ok";
+    applyFilters();
+  } catch (error) {
+    els.status.textContent = "Could not fetch a video index. Serve this directory over HTTP so the page can fetch index.htmlk, index.html, ./, or commands.sh. " + error.message;
+    els.status.className = "status warn";
+    render();
+  }
+}
+
+init();
+</script>
+</html>

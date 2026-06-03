@@ -1,0 +1,6 @@
+/target/
+__pycache__/
+nohup.out
+*.mp4
+*.webm
+*.y4m
